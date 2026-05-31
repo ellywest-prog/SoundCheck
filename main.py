@@ -812,6 +812,28 @@ class RealTimeSpekApp(QMainWindow):
 
     # ─────────────────────────────────────────────────────────────────
     def update_ui(self):
+        # ── CPU Tasarrufu (Idle Detection) ───────────────────────────
+        # Eğer ses yoksa ve UI zaten sıfırlanmışsa, ağır FFT ve UI güncellemelerini atla
+        recent_audio = self.audio_data[-1024:]
+        rms = np.sqrt(np.mean(recent_audio ** 2) + 1e-12)
+        
+        is_ui_zero = (np.max(self.smoothed_bands) < 0.1 and np.max(self.peaks) < 0.1 and 
+                      self.smoothed_db < 0.1 and self.db_peak < 0.1)
+                      
+        if rms < 1e-4 and is_ui_zero:
+            # Sadece ses senkronizasyonunu yap
+            if PYCAW_AVAILABLE:
+                self._vol_sync_counter += 1
+                if self._vol_sync_counter >= 100:
+                    self._vol_sync_counter = 0
+                    real_vol = get_master_volume()
+                    if abs(real_vol - self.vol_slider.value()) > 2:
+                        self.vol_slider.blockSignals(True)
+                        self.vol_slider.setValue(real_vol)
+                        self.vol_slider.blockSignals(False)
+                        self.lbl_vol.setText(f"{real_vol}%")
+            return
+
         # ── Spectrum (WinAmp / JetAudio absolute-dB style) ───────────
         window   = np.hanning(self.fft_size)
         windowed = self.audio_data * window
@@ -876,8 +898,6 @@ class RealTimeSpekApp(QMainWindow):
             else:         self.peak_items[i].setBrush(self.BAR_BRUSH)
 
         # ── DB Meter (RMS / volume-sensitive) ────────────────────────
-        recent_audio = self.audio_data[-1024:]
-        rms    = np.sqrt(np.mean(recent_audio ** 2) + 1e-12)
         db_pct = float(np.clip((20.0 * np.log10(rms) + 60.0) * (100.0 / 60.0), 0.0, 100.0))
 
         if db_pct > self.smoothed_db:
