@@ -588,11 +588,11 @@ class RealTimeSpekApp(QMainWindow):
         right_ax.setTextPen(pg.mkPen(color='#5A6280'))
         right_ax.setTicks([[(25,'%25'), (50,'%50'), (75,'%75'), (100,'MAX')]])
 
-        # Reference dashed lines — behind bars (Z=1)
-        for y, col in [(100,'#4A5060'), (50,'#353D4A')]:
+        # Reference dashed lines — behind bars (Z=0), shifted by 1 to avoid black scanlines
+        for y, col in [(99,'#4A5060'), (75,'#353D4A'), (49,'#353D4A'), (25,'#353D4A')]:
             ln = pg.InfiniteLine(pos=y, angle=0,
                 pen=pg.mkPen(color=col, width=1, style=Qt.PenStyle.DashLine))
-            ln.setZValue(1)
+            ln.setZValue(0)
             self.plot_widget.addItem(ln)
 
         mid.addWidget(self.plot_widget, stretch=1)
@@ -719,19 +719,19 @@ class RealTimeSpekApp(QMainWindow):
 
         for i in range(num_bands):
             rc = pg.QtWidgets.QGraphicsRectItem(i - 0.4, 0, 0.8, 0)
-            rc.setPen(pg.mkPen(None)); rc.setBrush(self.BAR_BRUSH); rc.setZValue(5)
+            rc.setPen(pg.mkPen(None)); rc.setBrush(self.BAR_BRUSH)
             self.plot_widget.addItem(rc); self.bar_items_cyan.append(rc)
 
             ry = pg.QtWidgets.QGraphicsRectItem(i - 0.4, 75, 0.8, 0)
-            ry.setPen(pg.mkPen(None)); ry.setBrush(self.DB_PEAK_YELLOW); ry.setZValue(5)
+            ry.setPen(pg.mkPen(None)); ry.setBrush(self.DB_PEAK_YELLOW)
             self.plot_widget.addItem(ry); self.bar_items_yellow.append(ry)
 
             rr = pg.QtWidgets.QGraphicsRectItem(i - 0.4, 90, 0.8, 0)
-            rr.setPen(pg.mkPen(None)); rr.setBrush(self.DB_PEAK_RED); rr.setZValue(5)
+            rr.setPen(pg.mkPen(None)); rr.setBrush(self.DB_PEAK_RED)
             self.plot_widget.addItem(rr); self.bar_items_red.append(rr)
 
             p = pg.QtWidgets.QGraphicsRectItem(i - 0.4, 0, 0.8, self.led_step * 0.75)
-            p.setPen(pg.mkPen(None)); p.setBrush(self.BAR_BRUSH); p.setZValue(5)
+            p.setPen(pg.mkPen(None)); p.setBrush(self.BAR_BRUSH)
             self.plot_widget.addItem(p); self.peak_items.append(p)
 
         # Re-lock ranges after band change (prevents auto-range from kicking in)
